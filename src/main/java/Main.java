@@ -4,11 +4,13 @@ import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Main {
 
-    Random r = new Random();
+    static Random r = new Random();
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -18,6 +20,7 @@ public class Main {
         Player player = new Player ();                                              //Skapar spelare
         terminal.setCursorVisible(false);
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
+        buildWall(terminal);
 
 
         do {
@@ -25,6 +28,8 @@ public class Main {
             terminal.setCursorPosition(player.getX(), player.getY());
             terminal.putCharacter(player.getPlayerChar());
             terminal.flush();
+
+
 
             KeyStroke keyStroke = null;
             do {
@@ -52,6 +57,23 @@ public class Main {
 
         } while (true);
 
+    }
+
+    private static void buildWall(Terminal terminal) throws IOException {
+        int y = 0;
+        int rand = r.nextInt(14);
+        List<Position> walls = new ArrayList<>();                   //Placerar walls
+        for (int i = 0; i < 24; i++) {
+            if (i < rand || i >= rand+10){
+                walls.add(new Position(70, y));
+            }
+            y++;
+        }
+        for (Position o : walls) {
+            terminal.setCursorPosition(o.getX(), o.getY());
+            terminal.putCharacter('X');
+        }
+        terminal.flush();
     }
 }
 
