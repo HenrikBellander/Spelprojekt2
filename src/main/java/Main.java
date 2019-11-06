@@ -70,6 +70,15 @@ public class Main {
             } while (keyStroke == null);
 
             if (lives == 0){                        //Bryter gameloopen
+                terminal.clearScreen();
+                terminal.setCursorPosition(35, 12);
+                terminal.setForegroundColor(TextColor.ANSI.RED);
+                terminal.bell();
+                String death = "YOU DIED!";
+                for (int i = 0; i < death.length(); i++) {
+                    terminal.putCharacter(death.charAt(i));
+                }
+                terminal.flush();
                 break;
             }
             terminal.setCursorPosition(player.getX(), player.getY());                           //Suddar spelare efter knapptryck
