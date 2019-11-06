@@ -16,56 +16,49 @@ public class Main {
 
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();      //Skapar terminalfönster
         Terminal terminal = terminalFactory.createTerminal();
-
-        Player player = new Player ();                                              //Skapar spelare
         terminal.setCursorVisible(false);
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
-        Obstacle o1 = new Obstacle(buildWall());
+
+        Player player = new Player ();                                              //Skapar spelare och väggar
+        Obstacle o1 = new Obstacle(buildWall(79));
+        Obstacle o2 = new Obstacle(buildWall(95));
+        Obstacle o3 = new Obstacle(buildWall(111));
+        Obstacle o4 = new Obstacle(buildWall(127));
+        Obstacle o5 = new Obstacle(buildWall(143));
 
 
-        do {
-            terminal.setCursorPosition(player.getX(), player.getY());
+        do {                                                                        //Gameloopen
+            terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
             terminal.putCharacter(player.getPlayerChar());
-
             terminal.flush();
 
 
-
-            int counter=0;
+            int counter=0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop och nollställs efter movement.
             KeyStroke keyStroke = null;
             do {
                 Thread.sleep(5); // might throw InterruptedException
                 keyStroke = terminal.pollInput();
                 counter++;
-
-
-                if (counter == 50 || keyStroke != null) {
+                if (counter == 20 || keyStroke != null) {
                     terminal.clearScreen();
-                    terminal.setCursorPosition(player.getX(), player.getY());
+                    terminal.setCursorPosition(player.getX(), player.getY());               //Printar även ut spelare när väggar flyttar
                     terminal.putCharacter(player.getPlayerChar());
                     terminal.flush();
-                    for (Position p : o1.obstacleList) {
-                        if (p.getX() >= 0) {
-                            terminal.setCursorPosition(p.getX(), p.getY());
-                            terminal.putCharacter('X');
-                            p.setX(p.getX() - 1);
-                            terminal.flush();
-                        } else {
-                            o1.obstacleList = buildWall();
-                            break;
-                        }
-                    }
+                    //TODO inte printa om x > 79
+                    printWall(terminal, o1);                                                //Printar väggar
+                    printWall(terminal, o2);
+                    printWall(terminal, o3);
+                    printWall(terminal, o4);
+                    printWall(terminal, o5);
                     counter = 0;
                 }
-
             } while (keyStroke == null);
 
-            terminal.setCursorPosition(player.getX(), player.getY());
+            terminal.setCursorPosition(player.getX(), player.getY());                           //Suddar spelare efter knapptryck
             terminal.putCharacter(' ');
 
             KeyType type = keyStroke.getKeyType();
-
-            switch (type) {                                     //Vår förflyttning
+            switch (type) {                                     //Spelares förflyttning
                 case ArrowDown:
                     if (player.getY() == 23) {
                     } else {
@@ -80,22 +73,36 @@ public class Main {
                     break;
             }
             terminal.flush();
-
-        } while (true);
-
+        } while (true);                                                 //Gameloop slutar här
     }
 
-    private static List<Position> buildWall() {
+    private static List<Position> buildWall(int startX) {
         int y = 0;
         int rand = r.nextInt(14);
-        List<Position> walls = new ArrayList<>();                   //Placerar walls
+        List<Position> walls = new ArrayList<>();                   //Initierar samt bygger nya walls efter att de nått slutet av sin resa
         for (int i = 0; i < 24; i++) {
             if (i < rand || i >= rand+10){
-                walls.add(new Position(79, y));
+                walls.add(new Position(startX, y));
             }
             y++;
         }
         return walls;
     }
+
+    private static void printWall(Terminal terminal, Obstacle o) throws IOException {               //Printar väggar
+        for (Position p : o.obstacleList) {
+            if (p.getX() >= 0) {
+                terminal.setCursorPosition(p.getX(), p.getY());
+                terminal.putCharacter('X');
+                p.setX(p.getX() - 1);
+                terminal.flush();
+            } else {
+                o.obstacleList = buildWall(79);
+                break;
+            }
+        }
+    }
+
+
 }
 
