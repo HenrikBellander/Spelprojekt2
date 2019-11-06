@@ -20,11 +20,13 @@ public class Main {
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
 
         Player player = new Player ();                                              //Skapar spelare och väggar
-        Obstacle o1 = new Obstacle(buildWall(79));
-        Obstacle o2 = new Obstacle(buildWall(95));
-        Obstacle o3 = new Obstacle(buildWall(111));
-        Obstacle o4 = new Obstacle(buildWall(127));
-        Obstacle o5 = new Obstacle(buildWall(143));
+        int lives = 3;
+        List<Obstacle> walls = new ArrayList<>();
+        walls.add(new Obstacle(buildWall(79)));
+        walls.add(new Obstacle(buildWall(95)));
+        walls.add(new Obstacle(buildWall(111)));
+        walls.add(new Obstacle(buildWall(127)));
+        walls.add(new Obstacle(buildWall(143)));
 
 
         do {                                                                        //Gameloopen
@@ -45,15 +47,31 @@ public class Main {
                     terminal.putCharacter(player.getPlayerChar());
                     terminal.flush();
                     //TODO inte printa om x > 79
-                    printWall(terminal, o1);                                                //Printar väggar
-                    printWall(terminal, o2);
-                    printWall(terminal, o3);
-                    printWall(terminal, o4);
-                    printWall(terminal, o5);
+
+                    for (Obstacle o : walls) {                                              //Printar väggar
+                        printWall(terminal, o);
+                    }
+
+                    for (Obstacle ob : walls) {                                             //Kollisionscheck med väggarna
+                        for (Position p : ob.obstacleList) {
+                            if (p.getX() == player.getX() && p.getY() == player.getY()) {
+                                System.out.println("DEATH");    //TODO nåt bättre än detta
+                                lives--;
+
+                            }
+                        }
+                    }
+
                     counter = 0;
+                }
+                if (lives == 0){                    //Kollar ofta
+                    break;
                 }
             } while (keyStroke == null);
 
+            if (lives == 0){                        //Bryter gameloopen
+                break;
+            }
             terminal.setCursorPosition(player.getX(), player.getY());                           //Suddar spelare efter knapptryck
             terminal.putCharacter(' ');
 
@@ -73,6 +91,7 @@ public class Main {
                     break;
             }
             terminal.flush();
+
         } while (true);                                                 //Gameloop slutar här
     }
 
