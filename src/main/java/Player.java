@@ -1,6 +1,12 @@
 public class Player {
     private final int x = 10;
     private int y = 12;
+    private final char playerChar = '\u265e';
+
+
+    public char getPlayerChar() {
+        return playerChar;
+    }
 
     public int getX() {
         return x;

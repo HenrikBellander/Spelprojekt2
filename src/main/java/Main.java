@@ -1,3 +1,4 @@
+import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import java.io.IOException;
@@ -12,6 +13,11 @@ public class Main {
         Terminal terminal = terminalFactory.createTerminal();
 
         Player player = new Player ();
+        terminal.setCursorVisible(false);
+        terminal.setCursorPosition(player.getX(), player.getY());
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+
+        terminal.putCharacter(player.getPlayerChar());
 
     }
 }
