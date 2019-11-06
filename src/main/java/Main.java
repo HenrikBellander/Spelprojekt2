@@ -11,6 +11,7 @@ import java.util.Random;
 public class Main {
 
     static Random r = new Random();
+//    static int speed = 20;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -29,6 +30,8 @@ public class Main {
         walls.add(new Obstacle(buildWall(143)));
 
 
+
+
         do {                                                                        //Gameloopen
             terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
             terminal.putCharacter(player.getPlayerChar());
@@ -41,6 +44,11 @@ public class Main {
                 Thread.sleep(5); // might throw InterruptedException
                 keyStroke = terminal.pollInput();
                 counter++;
+                /*if (counter == 10){           //Test att få det att gå snabbare
+                    if (speed > 1) {
+                        speed--;
+                    }
+                }*/
                 if (counter == 20 || keyStroke != null) {
                     terminal.clearScreen();
                     terminal.setCursorPosition(player.getX(), player.getY());               //Printar även ut spelare när väggar flyttar
@@ -52,16 +60,15 @@ public class Main {
                         printWall(terminal, o);
                     }
 
+
                     for (Obstacle ob : walls) {                                             //Kollisionscheck med väggarna
                         for (Position p : ob.obstacleList) {
                             if (p.getX() == player.getX() && p.getY() == player.getY()) {
                                 System.out.println("DEATH");    //TODO nåt bättre än detta
                                 lives--;
-
                             }
                         }
                     }
-
                     counter = 0;
                 }
                 if (lives == 0){                    //Kollar ofta
