@@ -20,97 +20,61 @@ public class Main {
         Terminal terminal = terminalFactory.createTerminal();
         terminal.setCursorVisible(false);
 
-
         Player player = new Player();                                              //Skapar spelare och väggar
         int lives = 3;
         int points = 0;
-        List<Obstacle> walls = new ArrayList<>();
 
-        walls.add(new Obstacle(buildComet(79)));
-        walls.add(new Obstacle(buildComet(95)));
-        walls.add(new Obstacle(buildComet(111)));
-        walls.add(new Obstacle(buildComet(127)));
-        walls.add(new Obstacle(buildComet(143)));
+        List<Obstacle> obstacles = createComets();                                  //Skapar kometer
 
-        //TODO Mat
-        List<Position> stars = new ArrayList<>();                    //Placerar mat
+        List<Position> stars = new ArrayList<>();                                   //Skapar och placerar de första stjärnorna
         for (int i = 0; i < 5; i++) {
-            stars.add(new Position(r.nextInt(80), r.nextInt(24)));
+            stars.add(new Position(r.nextInt(20)+60, r.nextInt(24)));
         }
 
-
-        int counter = 0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop
+        int counter = 0;                                                            //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop.
         do {                                                                        //Gameloopen
-            terminal.setForegroundColor(TextColor.ANSI.WHITE);
-            terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
-            terminal.putCharacter(player.getPlayerChar());
-//            terminal.setForegroundColor(TextColor.ANSI.WHITE);
-            terminal.flush();
+
+            printPlayer(terminal, player);
 
             KeyStroke keyStroke = null;
             do {
-                Thread.sleep(5); // might throw InterruptedException
+                Thread.sleep(5);
                 keyStroke = terminal.pollInput();
                 counter++;
-                if (counter % 500 == 0) {           //Test att få det att gå snabbare
-                    if (speed > 5) {
+                if (counter % 300 == 0 && speed > 3) {                               //För att få spelet att gå snabbare
                         speed--;
-                    }
                 }
+
                 if (counter % speed == 0 || keyStroke != null) {
                     terminal.clearScreen();
-                    terminal.setCursorPosition(player.getX(), player.getY());               //Printar även ut spelare när väggar flyttar
-                    terminal.putCharacter(player.getPlayerChar());
+                    printPlayer(terminal, player);
 
                     //TODO inte printa om x > 79
 
-                    for (Obstacle o : walls) {                                              //Printar väggar
+                    //TODO Beroende på level
+                    for (Obstacle o : obstacles) {                                              //Printar väggar
                         //  printWall(terminal, o);
-                        printComets(terminal, o);                                           //Printar kometer
+                        printComets(terminal, o);                                               //Printar kometer
                     }
+
+
+
+                    lives = collisionCheck(terminal, player, lives, obstacles);
+                    points = eatStars(terminal, player, points, stars);
 
                     printLives(terminal, lives);
                     printPoints(terminal, points);
                     printStars(terminal, stars);
-
-
-                    for (Obstacle ob : walls) {                                             //Kollisionscheck med väggarna
-                        for (Position p : ob.obstacleList) {
-                            if (p.getX() == player.getX() && p.getY() == player.getY()) {
-                                System.out.println("DEATH");    //TODO nåt bättre än detta
-                                lives--;
-                                terminal.setForegroundColor(TextColor.ANSI.WHITE);          //Skriver ut "OH NO!" där man krockar med vägg
-                                terminal.setCursorPosition(player.getX(), player.getY());
-                                String death = "OH NO!";
-                                for (int i = 0; i < death.length(); i++) {
-                                    terminal.putCharacter(death.charAt(i));
-                                }
-                            }
-                        }
-                    }
-
-                    for (Position o : stars) {                                                                        //Lägger till ny stjärna när spelare har tagit en
-                        if (o.getX() == player.getX() && o.getY() == player.getY()) {
-                            points++;
-                            o.setX(r.nextInt(20)+60);
-                            o.setY(r.nextInt(24));
-                            terminal.setCursorPosition(stars.get(stars.size() - 1).getX(), stars.get(stars.size() - 1).getY());
-                            terminal.setForegroundColor(TextColor.ANSI.GREEN);
-                            terminal.putCharacter('\u2b50');
-                            terminal.setForegroundColor(TextColor.ANSI.BLACK);
-                            break;
-                        }
-                    }
 
                     terminal.flush();
                 }
                 if (lives == 0) {                    //Kollar ofta
                     break;
                 }
-            } while (keyStroke == null);
+            } while (keyStroke == null);             //Avslutar 5ms loop
 
             if (lives == 0) {                        //Bryter spelloopen
-                terminal.clearScreen();
+                //terminal.clearScreen();
                 printDeath(terminal);
                 break;
             }
@@ -118,22 +82,78 @@ public class Main {
             terminal.putCharacter(' ');
 
             KeyType type = keyStroke.getKeyType();
-            switch (type) {                                     //Spelares förflyttning
-                case ArrowDown:
-                    if (player.getY() == 23) {
-                    } else {
-                        player.setY(player.getY() + 1);
-                    }
-                    break;
-                case ArrowUp:
-                    if (player.getY() == 0) {
-                    } else {
-                        player.setY(player.getY() - 1);
-                    }
-                    break;
-            }
+            playerMovement(player, type);
             terminal.flush();
         } while (true);                                                 //Gameloop slutar här
+    }
+
+    private static void playerMovement(Player player, KeyType type) {
+        switch (type) {                                     //Spelares förflyttning
+            case ArrowDown:
+                if (player.getY() == 23) {
+                } else {
+                    player.setY(player.getY() + 1);
+                }
+                break;
+            case ArrowUp:
+                if (player.getY() == 0) {
+                } else {
+                    player.setY(player.getY() - 1);
+                }
+                break;
+        }
+    }
+
+    private static int eatStars(Terminal terminal, Player player, int points, List<Position> stars) throws IOException {
+        for (Position o : stars) {                                                                        //Lägger till ny stjärna när spelare har tagit en
+            if (o.getX() == player.getX() && o.getY() == player.getY()) {
+                points++;
+                o.setX(r.nextInt(20)+60);
+                o.setY(r.nextInt(24));
+                terminal.setCursorPosition(stars.get(stars.size() - 1).getX(), stars.get(stars.size() - 1).getY());
+                terminal.setForegroundColor(TextColor.ANSI.GREEN);
+                terminal.putCharacter('\u2b50');
+                terminal.setForegroundColor(TextColor.ANSI.BLACK);
+                break;
+            }
+        }
+        return points;
+    }
+
+    private static int collisionCheck(Terminal terminal, Player player, int lives, List<Obstacle> obstacles) throws IOException {
+        for (Obstacle ob : obstacles) {                                             //Kollisionscheck med väggarna
+            for (Position p : ob.obstacleList) {
+                if (p.getX() == player.getX() && p.getY() == player.getY()) {
+                    System.out.println("DEATH");    //TODO nåt bättre än detta
+                    lives--;
+                    terminal.setForegroundColor(TextColor.ANSI.WHITE);          //Skriver ut "OH NO!" där man krockar med vägg
+                    terminal.setCursorPosition(player.getX(), player.getY());
+                    String death = "OH NO!";
+                    for (int i = 0; i < death.length(); i++) {
+                        terminal.putCharacter(death.charAt(i));
+                    }
+                }
+            }
+        }
+        return lives;
+    }
+
+    private static void printPlayer(Terminal terminal, Player player) throws IOException {
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+        terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
+        terminal.putCharacter(player.getPlayerChar());
+        terminal.flush();
+    }
+
+    private static List<Obstacle> createComets() {
+        List<Obstacle> obstacles = new ArrayList<>();
+
+        obstacles.add(new Obstacle(buildComet(79)));
+        obstacles.add(new Obstacle(buildComet(95)));
+        obstacles.add(new Obstacle(buildComet(111)));
+        obstacles.add(new Obstacle(buildComet(127)));
+        obstacles.add(new Obstacle(buildComet(143)));
+        return obstacles;
     }
 
     private static void printStars(Terminal terminal, List<Position> stars) throws IOException {
@@ -143,7 +163,6 @@ public class Main {
                 terminal.setCursorPosition(o.getX(), o.getY());
                 terminal.setForegroundColor(TextColor.ANSI.WHITE);
                 terminal.putCharacter('\u2b50');            //25CF
-                terminal.flush();
                 /*terminal.setForegroundColor(TextColor.ANSI.WHITE);        //Ev TODO: Blinkande stjärnor
                 terminal.putCharacter('\u2b50');
                 terminal.flush();*/
@@ -152,6 +171,7 @@ public class Main {
                 o.setY(r.nextInt(24));
             }
         }
+        terminal.flush();
     }
 
     private static void printPoints(Terminal terminal, int points) throws IOException {
@@ -207,13 +227,12 @@ public class Main {
                 terminal.setCursorPosition(p.getX(), p.getY());
                 terminal.putCharacter('X');
                 p.setX(p.getX() - 1);
-                terminal.flush();
             } else {
                 o.obstacleList = buildWall(79 + r.nextInt(16));
                 break;
             }
         }
-
+        terminal.flush();
     }
 
     private static List<Position> buildComet(int startX) {             //Initierar samt bygger nya kometer
@@ -232,20 +251,17 @@ public class Main {
             }
             startY++;
         }
-
         return comets;
     }
 
     private static void printComets(Terminal terminal, Obstacle o) throws IOException {      //Printar kometer
         boolean everythingBelowZero = true;
-
         for (Position p : o.obstacleList) {
             terminal.setForegroundColor(TextColor.ANSI.YELLOW);
             if (p.getX() >= 0) {
                 terminal.setCursorPosition(p.getX(), p.getY());
                 terminal.putCharacter('O');
                 p.setX(p.getX() - 1);
-                terminal.flush();
                 everythingBelowZero = false;
             }
         }
@@ -253,7 +269,7 @@ public class Main {
             o.obstacleList = buildComet(79 + r.nextInt(8));
         }
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
-
+        terminal.flush();
     }
 }
 
