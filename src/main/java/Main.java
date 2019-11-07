@@ -184,7 +184,7 @@ public class Main {
         return comets;
     }
     private static void printComets(Terminal terminal, Obstacle o) throws IOException {      //Printar kometer
-        boolean alltUnderNoll=true;
+        boolean everythingBelowZero=true;
 
         for (Position p : o.obstacleList) {
             terminal.setForegroundColor(TextColor.ANSI.YELLOW);
@@ -194,14 +194,13 @@ public class Main {
                 p.setX(p.getX() - 1);
                 terminal.flush();
 
-                alltUnderNoll=false;
+                everythingBelowZero=false;
             }
         }
-        if (alltUnderNoll) {                                                                    //Bygger om komet när det är utanför skärmen
+        if (everythingBelowZero) {                                                                    //Bygger om komet när den är utanför skärmen
             o.obstacleList = buildComet(79+r.nextInt(8));
 
         }
     }
-
 }
 
