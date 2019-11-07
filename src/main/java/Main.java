@@ -23,6 +23,7 @@ public class Main {
         Player player = new Player ();                                              //Skapar spelare och väggar
         int lives = 3;
         List<Obstacle> walls = new ArrayList<>();
+
         walls.add(new Obstacle(buildComet(79)));
         walls.add(new Obstacle(buildComet(95)));
         walls.add(new Obstacle(buildComet(111)));
@@ -182,7 +183,9 @@ public class Main {
 
         return comets;
     }
-    private static void printComets(Terminal terminal, Obstacle o) throws IOException {               //Printar kometer
+    private static void printComets(Terminal terminal, Obstacle o) throws IOException {      //Printar kometer
+        boolean alltUnderNoll=true;
+
         for (Position p : o.obstacleList) {
             terminal.setForegroundColor(TextColor.ANSI.YELLOW);
             if (p.getX() >= 0) {
@@ -190,10 +193,13 @@ public class Main {
                 terminal.putCharacter('O');
                 p.setX(p.getX() - 1);
                 terminal.flush();
-            } else {
-                o.obstacleList = buildComet(79+r.nextInt(16));
-                break;
+
+                alltUnderNoll=false;
             }
+        }
+        if (alltUnderNoll) {                                                                    //Bygger om komet när det är utanför skärmen
+            o.obstacleList = buildComet(79+r.nextInt(8));
+
         }
     }
 
