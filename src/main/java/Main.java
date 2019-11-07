@@ -11,7 +11,7 @@ import java.util.Random;
 public class Main {
 
     static Random r = new Random();
-//    static int speed = 20;
+    static int speed = 20;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -31,25 +31,24 @@ public class Main {
 
 
 
-
+        int counter=0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop och nollställs efter movement.
         do {                                                                        //Gameloopen
             terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
             terminal.putCharacter(player.getPlayerChar());
             terminal.flush();
 
 
-            int counter=0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop och nollställs efter movement.
             KeyStroke keyStroke = null;
             do {
                 Thread.sleep(5); // might throw InterruptedException
                 keyStroke = terminal.pollInput();
                 counter++;
-                /*if (counter == 10){           //Test att få det att gå snabbare
-                    if (speed > 1) {
+                if (counter % 2000 == 0){           //Test att få det att gå snabbare
+                    if (speed > 5) {
                         speed--;
                     }
-                }*/
-                if (counter == 20 || keyStroke != null) {
+                }
+                if (counter % speed == 0 || keyStroke != null) {
                     terminal.clearScreen();
                     terminal.setCursorPosition(player.getX(), player.getY());               //Printar även ut spelare när väggar flyttar
                     terminal.putCharacter(player.getPlayerChar());
@@ -69,7 +68,6 @@ public class Main {
                             }
                         }
                     }
-                    counter = 0;
                 }
                 if (lives == 0){                    //Kollar ofta
                     break;
