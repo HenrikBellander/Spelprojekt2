@@ -3,6 +3,7 @@ import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class Main {
         terminal.setCursorVisible(false);
 
 
-        Player player = new Player ();                                              //Skapar spelare och väggar
+        Player player = new Player();                                              //Skapar spelare och väggar
         int lives = 3;
         int points = 0;
         List<Obstacle> walls = new ArrayList<>();
@@ -32,20 +33,15 @@ public class Main {
         walls.add(new Obstacle(buildComet(143)));
 
         //TODO Mat
-        List<Position> star = new ArrayList<>();                    //Placerar mat
-        terminal.setForegroundColor(TextColor.ANSI.GREEN);
-        for (int i = 0; i < 30; i++) {
-            star.add(new Position(r.nextInt(80), r.nextInt(24)));
-        }
-        for (Position o : star) {
-            terminal.setCursorPosition(o.getX(), o.getY());
-            terminal.putCharacter('\u2618');            //25CF
+        List<Position> stars = new ArrayList<>();                    //Placerar mat
+        for (int i = 0; i < 5; i++) {
+            stars.add(new Position(r.nextInt(80), r.nextInt(24)));
         }
 
 
-        int counter=0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop
+        int counter = 0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop
         do {                                                                        //Gameloopen
-            terminal.setForegroundColor(TextColor.ANSI.MAGENTA);
+            terminal.setForegroundColor(TextColor.ANSI.WHITE);
             terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
             terminal.putCharacter(player.getPlayerChar());
 //            terminal.setForegroundColor(TextColor.ANSI.WHITE);
@@ -56,7 +52,7 @@ public class Main {
                 Thread.sleep(5); // might throw InterruptedException
                 keyStroke = terminal.pollInput();
                 counter++;
-                if (counter % 500 == 0){           //Test att få det att gå snabbare
+                if (counter % 500 == 0) {           //Test att få det att gå snabbare
                     if (speed > 5) {
                         speed--;
                     }
@@ -69,12 +65,14 @@ public class Main {
                     //TODO inte printa om x > 79
 
                     for (Obstacle o : walls) {                                              //Printar väggar
-                      //  printWall(terminal, o);
+                        //  printWall(terminal, o);
                         printComets(terminal, o);                                           //Printar kometer
                     }
 
                     printLives(terminal, lives);
                     printPoints(terminal, points);
+                    printStars(terminal, stars);
+
 
                     for (Obstacle ob : walls) {                                             //Kollisionscheck med väggarna
                         for (Position p : ob.obstacleList) {
@@ -91,11 +89,12 @@ public class Main {
                         }
                     }
 
-                    for (Position o : star){                                                                        //Lägger till ny stjärna när spelare har tagit en
+                    for (Position o : stars) {                                                                        //Lägger till ny stjärna när spelare har tagit en
                         if (o.getX() == player.getX() && o.getY() == player.getY()) {
                             points++;
-                            star.add(new Position(r.nextInt(80), r.nextInt(24)));
-                            terminal.setCursorPosition(star.get(star.size()-1).getX(), star.get(star.size()-1).getY());
+                            o.setX(r.nextInt(20)+60);
+                            o.setY(r.nextInt(24));
+                            terminal.setCursorPosition(stars.get(stars.size() - 1).getX(), stars.get(stars.size() - 1).getY());
                             terminal.setForegroundColor(TextColor.ANSI.GREEN);
                             terminal.putCharacter('\u2b50');
                             terminal.setForegroundColor(TextColor.ANSI.BLACK);
@@ -105,12 +104,12 @@ public class Main {
 
                     terminal.flush();
                 }
-                if (lives == 0){                    //Kollar ofta
+                if (lives == 0) {                    //Kollar ofta
                     break;
                 }
             } while (keyStroke == null);
 
-            if (lives == 0){                        //Bryter spelloopen
+            if (lives == 0) {                        //Bryter spelloopen
                 terminal.clearScreen();
                 printDeath(terminal);
                 break;
@@ -129,19 +128,35 @@ public class Main {
                 case ArrowUp:
                     if (player.getY() == 0) {
                     } else {
-                        player.setY(player.getY() -1);
+                        player.setY(player.getY() - 1);
                     }
                     break;
             }
             terminal.flush();
-
-
         } while (true);                                                 //Gameloop slutar här
+    }
+
+    private static void printStars(Terminal terminal, List<Position> stars) throws IOException {
+        for (Position o : stars) {
+            if (o.getX() >= 0) {
+                o.setX(o.getX() - 1);
+                terminal.setCursorPosition(o.getX(), o.getY());
+                terminal.setForegroundColor(TextColor.ANSI.WHITE);
+                terminal.putCharacter('\u2b50');            //25CF
+                terminal.flush();
+                /*terminal.setForegroundColor(TextColor.ANSI.WHITE);        //Ev TODO: Blinkande stjärnor
+                terminal.putCharacter('\u2b50');
+                terminal.flush();*/
+            } else {
+                o.setX(r.nextInt(20)+60);
+                o.setY(r.nextInt(24));
+            }
+        }
     }
 
     private static void printPoints(Terminal terminal, int points) throws IOException {
         String pts = "Points: " + points;
-        terminal.setCursorPosition(0,1);
+        terminal.setCursorPosition(0, 1);
         for (int i = 0; i < pts.length(); i++) {
             terminal.putCharacter(pts.charAt(i));
         }
@@ -157,6 +172,7 @@ public class Main {
         }
         terminal.flush();
     }
+
     private static void printLives(Terminal terminal, int lives) throws IOException {
         terminal.setCursorPosition(0, 0);
         terminal.setForegroundColor(TextColor.ANSI.GREEN);                  //Printar gröna liv - minskar per krock med objekt
@@ -168,7 +184,7 @@ public class Main {
             terminal.putCharacter('\u265e');
         }
         terminal.flush();
-        terminal.setForegroundColor(TextColor.ANSI.MAGENTA);
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
     }
 
     private static List<Position> buildWall(int startX) {
@@ -176,7 +192,7 @@ public class Main {
         int rand = r.nextInt(14);
         List<Position> walls = new ArrayList<>();                   //Initierar samt bygger nya walls efter att de nått slutet av sin resa
         for (int i = 0; i < 24; i++) {
-            if (i < rand || i >= rand+10){
+            if (i < rand || i >= rand + 10) {
                 walls.add(new Position(startX, y));
             }
             y++;
@@ -199,18 +215,19 @@ public class Main {
         }
 
     }
-    private static List<Position> buildComet (int startX) {             //Initierar samt bygger nya kometer
+
+    private static List<Position> buildComet(int startX) {             //Initierar samt bygger nya kometer
         int startY = r.nextInt(20);
         int randY = r.nextInt(7);
         List<Integer> cometShape = new ArrayList<>();
         for (int i = 0; i < randY; i++) {
-            cometShape.add(r.nextInt(10) +1);
+            cometShape.add(r.nextInt(10) + 1);
         }
         List<Position> comets = new ArrayList<>();
         for (int i = 0; i < cometShape.size(); i++) {
-            int x = startX-(cometShape.get(i)/2);
+            int x = startX - (cometShape.get(i) / 2);
             for (int j = 0; j < cometShape.get(i); j++) {
-               comets.add(new Position(x, startY));
+                comets.add(new Position(x, startY));
                 x++;
             }
             startY++;
@@ -218,8 +235,9 @@ public class Main {
 
         return comets;
     }
+
     private static void printComets(Terminal terminal, Obstacle o) throws IOException {      //Printar kometer
-        boolean everythingBelowZero=true;
+        boolean everythingBelowZero = true;
 
         for (Position p : o.obstacleList) {
             terminal.setForegroundColor(TextColor.ANSI.YELLOW);
@@ -228,14 +246,14 @@ public class Main {
                 terminal.putCharacter('O');
                 p.setX(p.getX() - 1);
                 terminal.flush();
-
-                everythingBelowZero=false;
+                everythingBelowZero = false;
             }
         }
         if (everythingBelowZero) {                                                                    //Bygger om komet när den är utanför skärmen
-            o.obstacleList = buildComet(79+r.nextInt(8));
-
+            o.obstacleList = buildComet(79 + r.nextInt(8));
         }
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+
     }
 }
 
