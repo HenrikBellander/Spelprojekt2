@@ -22,6 +22,7 @@ public class Main {
 
         Player player = new Player ();                                              //Skapar spelare och väggar
         int lives = 3;
+        int points = 0;
         List<Obstacle> walls = new ArrayList<>();
 
         walls.add(new Obstacle(buildComet(79)));
@@ -29,6 +30,17 @@ public class Main {
         walls.add(new Obstacle(buildComet(111)));
         walls.add(new Obstacle(buildComet(127)));
         walls.add(new Obstacle(buildComet(143)));
+
+        //TODO Mat
+        List<Position> food = new ArrayList<>();                    //Placerar mat
+        terminal.setForegroundColor(TextColor.ANSI.GREEN);
+        for (int i = 0; i < 30; i++) {
+            food.add(new Position(r.nextInt(80), r.nextInt(24)));
+        }
+        for (Position o : food) {
+            terminal.setCursorPosition(o.getX(), o.getY());
+            terminal.putCharacter('\u2618');            //25CF
+        }
 
 
         int counter=0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop
@@ -77,6 +89,19 @@ public class Main {
                             }
                         }
                     }
+
+                    for (Position o : food){
+                        if (o.getX() == player.getX() && o.getY() == player.getY()) {
+                            points++;
+                            food.add(new Position(r.nextInt(80), r.nextInt(24)));
+                            terminal.setCursorPosition(food.get(food.size()-1).getX(), food.get(food.size()-1).getY());
+                            terminal.setForegroundColor(TextColor.ANSI.GREEN);
+                            terminal.putCharacter('\u2618');
+                            terminal.setForegroundColor(TextColor.ANSI.BLACK);
+                            break;
+                        }
+                    }
+
                     terminal.flush();
                 }
                 if (lives == 0){                    //Kollar ofta
@@ -108,6 +133,11 @@ public class Main {
                     break;
             }
             terminal.flush();
+            String pts = "Points: " + points;
+            terminal.setCursorPosition(0,1);
+            for (int i = 0; i < pts.length(); i++) {
+                terminal.putCharacter(pts.charAt(i));
+            }
 
         } while (true);                                                 //Gameloop slutar här
     }
