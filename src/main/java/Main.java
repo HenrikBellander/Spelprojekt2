@@ -23,11 +23,11 @@ public class Main {
         Player player = new Player ();                                              //Skapar spelare och väggar
         int lives = 3;
         List<Obstacle> walls = new ArrayList<>();
-        walls.add(new Obstacle(buildWall(79)));
-        walls.add(new Obstacle(buildWall(95)));
-        walls.add(new Obstacle(buildWall(111)));
-        walls.add(new Obstacle(buildWall(127)));
-        walls.add(new Obstacle(buildWall(143)));
+        walls.add(new Obstacle(buildComet(79)));
+        walls.add(new Obstacle(buildComet(95)));
+        walls.add(new Obstacle(buildComet(111)));
+        walls.add(new Obstacle(buildComet(127)));
+        walls.add(new Obstacle(buildComet(143)));
 
 
         int counter=0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop
@@ -56,7 +56,8 @@ public class Main {
                     //TODO inte printa om x > 79
 
                     for (Obstacle o : walls) {                                              //Printar väggar
-                        printWall(terminal, o);
+                      //  printWall(terminal, o);
+                        printComets(terminal, o);                                           //Printar kometer
                     }
 
                     printLives(terminal, lives);
@@ -156,16 +157,16 @@ public class Main {
                 p.setX(p.getX() - 1);
                 terminal.flush();
             } else {
-                o.obstacleList = buildWall(79+r.nextInt(16));
+                o.obstacleList = buildWall(79 + r.nextInt(16));
                 break;
             }
         }
-    }
 
-    private static List<Position> buildComet (int startX) {
+    }
+    private static List<Position> buildComet (int startX) {             //Initierar samt bygger nya kometer
         int startY = r.nextInt(20);
         int randY = r.nextInt(7);
-        List<Integer> cometShape = new ArrayList<>();                   //Initierar samt bygger nya walls efter att de nått slutet av sin resa
+        List<Integer> cometShape = new ArrayList<>();
         for (int i = 0; i < randY; i++) {
             cometShape.add(r.nextInt(10) +1);
         }
@@ -173,12 +174,27 @@ public class Main {
         for (int i = 0; i < cometShape.size(); i++) {
             int x = startX-(cometShape.get(i)/2);
             for (int j = 0; j < cometShape.get(i); j++) {
-               comets.add(new Position(x, randY));
-
+               comets.add(new Position(x, startY));
+                x++;
             }
+            startY++;
         }
 
         return comets;
+    }
+    private static void printComets(Terminal terminal, Obstacle o) throws IOException {               //Printar kometer
+        for (Position p : o.obstacleList) {
+            terminal.setForegroundColor(TextColor.ANSI.YELLOW);
+            if (p.getX() >= 0) {
+                terminal.setCursorPosition(p.getX(), p.getY());
+                terminal.putCharacter('O');
+                p.setX(p.getX() - 1);
+                terminal.flush();
+            } else {
+                o.obstacleList = buildComet(79+r.nextInt(16));
+                break;
+            }
+        }
     }
 
 }
