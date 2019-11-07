@@ -32,12 +32,12 @@ public class Main {
         walls.add(new Obstacle(buildComet(143)));
 
         //TODO Mat
-        List<Position> food = new ArrayList<>();                    //Placerar mat
+        List<Position> star = new ArrayList<>();                    //Placerar mat
         terminal.setForegroundColor(TextColor.ANSI.GREEN);
         for (int i = 0; i < 30; i++) {
-            food.add(new Position(r.nextInt(80), r.nextInt(24)));
+            star.add(new Position(r.nextInt(80), r.nextInt(24)));
         }
-        for (Position o : food) {
+        for (Position o : star) {
             terminal.setCursorPosition(o.getX(), o.getY());
             terminal.putCharacter('\u2618');            //25CF
         }
@@ -74,6 +74,7 @@ public class Main {
                     }
 
                     printLives(terminal, lives);
+                    printPoints(terminal, points);
 
                     for (Obstacle ob : walls) {                                             //Kollisionscheck med väggarna
                         for (Position p : ob.obstacleList) {
@@ -90,13 +91,13 @@ public class Main {
                         }
                     }
 
-                    for (Position o : food){
+                    for (Position o : star){                                                                        //Lägger till ny stjärna när spelare har tagit en
                         if (o.getX() == player.getX() && o.getY() == player.getY()) {
                             points++;
-                            food.add(new Position(r.nextInt(80), r.nextInt(24)));
-                            terminal.setCursorPosition(food.get(food.size()-1).getX(), food.get(food.size()-1).getY());
+                            star.add(new Position(r.nextInt(80), r.nextInt(24)));
+                            terminal.setCursorPosition(star.get(star.size()-1).getX(), star.get(star.size()-1).getY());
                             terminal.setForegroundColor(TextColor.ANSI.GREEN);
-                            terminal.putCharacter('\u2618');
+                            terminal.putCharacter('\u2b50');
                             terminal.setForegroundColor(TextColor.ANSI.BLACK);
                             break;
                         }
@@ -133,13 +134,17 @@ public class Main {
                     break;
             }
             terminal.flush();
-            String pts = "Points: " + points;
-            terminal.setCursorPosition(0,1);
-            for (int i = 0; i < pts.length(); i++) {
-                terminal.putCharacter(pts.charAt(i));
-            }
+
 
         } while (true);                                                 //Gameloop slutar här
+    }
+
+    private static void printPoints(Terminal terminal, int points) throws IOException {
+        String pts = "Points: " + points;
+        terminal.setCursorPosition(0,1);
+        for (int i = 0; i < pts.length(); i++) {
+            terminal.putCharacter(pts.charAt(i));
+        }
     }
 
     private static void printDeath(Terminal terminal) throws IOException {
