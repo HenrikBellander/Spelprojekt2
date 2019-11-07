@@ -28,15 +28,13 @@ public class Main {
         walls.add(new Obstacle(buildWall(111)));
         walls.add(new Obstacle(buildWall(127)));
         walls.add(new Obstacle(buildWall(143)));
-
-
+        
 
         int counter=0;                                  //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop och nollställs efter movement.
         do {                                                                        //Gameloopen
             terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
             terminal.putCharacter(player.getPlayerChar());
             terminal.flush();
-
 
             KeyStroke keyStroke = null;
             do {
@@ -58,8 +56,7 @@ public class Main {
                     for (Obstacle o : walls) {                                              //Printar väggar
                         printWall(terminal, o);
                     }
-
-
+                    printLives(terminal, lives);
                     for (Obstacle ob : walls) {                                             //Kollisionscheck med väggarna
                         for (Position p : ob.obstacleList) {
                             if (p.getX() == player.getX() && p.getY() == player.getY()) {
@@ -76,14 +73,7 @@ public class Main {
 
             if (lives == 0){                        //Bryter gameloopen
                 terminal.clearScreen();
-                terminal.setCursorPosition(35, 12);
-                terminal.setForegroundColor(TextColor.ANSI.RED);
-                terminal.bell();
-                String death = "YOU DIED!";
-                for (int i = 0; i < death.length(); i++) {
-                    terminal.putCharacter(death.charAt(i));
-                }
-                terminal.flush();
+                printDeath(terminal);
                 break;
             }
             terminal.setCursorPosition(player.getX(), player.getY());                           //Suddar spelare efter knapptryck
@@ -107,6 +97,30 @@ public class Main {
             terminal.flush();
 
         } while (true);                                                 //Gameloop slutar här
+    }
+
+    private static void printDeath(Terminal terminal) throws IOException {
+        terminal.setCursorPosition(35, 12);
+        terminal.setForegroundColor(TextColor.ANSI.RED);
+        terminal.bell();
+        String death = "YOU DIED!";
+        for (int i = 0; i < death.length(); i++) {
+            terminal.putCharacter(death.charAt(i));
+        }
+        terminal.flush();
+    }
+    private static void printLives(Terminal terminal, int lives) throws IOException {
+        terminal.setCursorPosition(0, 0);
+        terminal.setForegroundColor(TextColor.ANSI.GREEN);                  //Printar gröna liv - minskar per krock med objekt
+        String livesLeft = "LIVES: ";
+        for (int i = 0; i < livesLeft.length(); i++) {
+            terminal.putCharacter(livesLeft.charAt(i));
+        }
+        for (int i = 0; i < lives; i++) {
+            terminal.putCharacter('\u265e');
+        }
+        terminal.flush();
+        terminal.setForegroundColor(TextColor.ANSI.MAGENTA);
     }
 
     private static List<Position> buildWall(int startX) {
@@ -135,7 +149,6 @@ public class Main {
             }
         }
     }
-
 
 }
 
