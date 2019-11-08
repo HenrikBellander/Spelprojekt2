@@ -176,17 +176,47 @@ public class Main {
         }
     }
 
-    private static void levelTwo() {
+    private static void levelUpMessage(Terminal terminal, String message) throws IOException {
+        terminal.setCursorPosition(35, 12);
+        terminal.setForegroundColor(TextColor.ANSI.GREEN);
+        for (int i = 0; i < message.length(); i++) {
+            terminal.putCharacter(message.charAt(i));
+        }
+        terminal.flush();
+    }
+
+    private static void levelTwo(Terminal terminal) throws InterruptedException, IOException {
         obstacles.clear();
         obstacles = createWalls();
         speed = 20;
-        //TODO Level 2 Message
+        levelUpMessage(terminal, "LEVEL 2");
+        KeyStroke keyStroke = null;
+        do {
+            Thread.sleep(5);
+            keyStroke = terminal.pollInput();
+        } while (keyStroke == null);
     }
-    //TODO
-    private static void levelBoss() {
+
+    private static void levelThree(Terminal terminal) throws InterruptedException, IOException {
+        speed = 20;
+        levelUpMessage(terminal, "LEVEL 3");
+        KeyStroke keyStroke = null;
+        do {
+            Thread.sleep(5);
+            keyStroke = terminal.pollInput();
+        } while (keyStroke == null);
+    }
+
+    private static void levelBoss(Terminal terminal) throws InterruptedException, IOException {
         speed = 20;
         obstacleslvl3.clear();
         obstacles.clear();
+        levelUpMessage(terminal, "FINAL BOSS!");
+        KeyStroke keyStroke = null;
+        do {
+            Thread.sleep(5);
+            keyStroke = terminal.pollInput();
+        } while (keyStroke == null);
     }
 
     private static Obstacle createBoss() {
@@ -228,9 +258,7 @@ public class Main {
         return new Obstacle(bossParts);
     }
 
-    private static void levelThree() {
-        speed = 20;
-    }
+
 
     private static void shotCollisionCheck(List<Obstacle> obstacles, List<Shot> shots) {
         for (Obstacle ob : obstacles) {                                                                     //Kollisionscheck mellan shots och obstacles
@@ -312,25 +340,25 @@ public class Main {
         }
     }
 
-    private static int eatStars(Terminal terminal, Player player, int points, List<Position> stars) throws IOException {
+    private static int eatStars(Terminal terminal, Player player, int points, List<Position> stars) throws IOException, InterruptedException {
         for (Position o : stars) {                                                                          //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
             if (o.getX() == player.getX() && o.getY() == player.getY()) {                                   //Bestämmer också level
                 points++;
-                if (points >= 1){
+                if (points >= 10){
                     if (level == 1){
-                        levelTwo();
+                        levelTwo(terminal);
                         level = 2;
                     }
                 }
-                if (points >= 2){
+                if (points >= 20){
                     if (level == 2){
-                        levelThree();
+                        levelThree(terminal);
                         level = 3;
                     }
                 }
-                if (points >= 4){
+                if (points >= 30){
                     if (level == 3){
-                        levelBoss();
+                        levelBoss(terminal);
                         level = 4;
                     }
                 }
