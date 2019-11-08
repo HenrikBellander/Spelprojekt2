@@ -20,6 +20,7 @@ public class Main {
     static List<Obstacle> obstacleslvl3 = createComets();                               //Dubbel lista på lvl 3
     static Obstacle boss = createBoss();
     static int bossHealth = 20;
+    static List<Shot> bossShots = new ArrayList<>();
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -79,12 +80,19 @@ public class Main {
                         if (counter%25==0) {
                             moveBoss(boss);
                         }
+                        if (counter%40==0){
+                            bossShots.add(new Shot(boss.obstacleList.get(0).getX()-1, boss.obstacleList.get(0).getY()));
+                        } else if (counter%20==0){
+                            bossShots.add(new Shot(boss.obstacleList.get(22).getX()-1, boss.obstacleList.get(22).getY()));
+                        }
                         printBoss(terminal, boss);
                         printBossHealth(terminal, bossHealth);
+                        printBossShots(terminal, bossShots);
                         bossCollisionCheck(boss, shotsFired);
                         if (bossHealth < 1){
                             endGame(terminal);
                         }
+                        lives = hitByBossCheck(terminal, player, lives, bossShots);
                     }
 
 
@@ -268,6 +276,19 @@ public class Main {
         }
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
     }
+    private static void printBossShots(Terminal terminal, List<Shot> bossShots) throws IOException {           //Printar shots, åker i motsatt riktning som obstacles med samma hastighet
+        terminal.setForegroundColor(TextColor.ANSI.RED);
+        for (int i = 0; i < bossShots.size(); i++) {
+            if (bossShots.get(i).getX() > 0) {                                                                 //Printar bara shots på spelplanen, annars tas de bort ur spelet
+                terminal.setCursorPosition(bossShots.get(i).getX(), bossShots.get(i).getY());
+                terminal.putCharacter('=');
+                bossShots.get(i).setX(bossShots.get(i).getX()-1);
+            } else {
+                bossShots.remove(bossShots.get(i));
+            }
+        }
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+    }
 
     private static void playerMovement(Player player, KeyType type, List<Shot> shots) {
         switch (type) {                                     //Spelares förflyttning
@@ -339,6 +360,23 @@ public class Main {
                 }
             }
         }
+        return lives;
+    }
+
+    private static int hitByBossCheck(Terminal terminal, Player player, int lives, List<Shot> bossShots) throws IOException {
+                                                    //Kollisionscheck med obstacles
+            for (Shot p : bossShots) {
+                if (p.getX() == player.getX() && p.getY() == player.getY()) {
+                    lives--;
+                    terminal.setForegroundColor(TextColor.ANSI.WHITE);          //Skriver ut "OH NO!" där man krockar med vägg
+                    terminal.setCursorPosition(player.getX(), player.getY());
+                    String death = "OH NO!";
+                    for (int i = 0; i < death.length(); i++) {
+                        terminal.putCharacter(death.charAt(i));
+                    }
+                }
+            }
+
         return lives;
     }
 
@@ -457,7 +495,7 @@ public class Main {
 
     private static void printWall(Terminal terminal, Obstacle o) throws IOException {               //Printar väggar
         for (Position p : o.obstacleList) {
-            terminal.setForegroundColor(TextColor.ANSI.WHITE);
+            terminal.setForegroundColor(TextColor.ANSI.YELLOW);
             if (p.getX() >= 0) {
                 terminal.setCursorPosition(p.getX(), p.getY());
                 terminal.putCharacter('X');
@@ -467,6 +505,7 @@ public class Main {
                 break;
             }
         }
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
         terminal.flush();
     }
 
