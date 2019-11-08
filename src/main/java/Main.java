@@ -18,7 +18,7 @@ public class Main {
     static int level = 1;
     static List<Obstacle> obstacles = createComets();                                  //Skapar kometer
     static List<Obstacle> obstacleslvl3 = createComets();                               //Dubbel lista på lvl 3
-
+    static Obstacle boss = createBoss();
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -28,6 +28,7 @@ public class Main {
 
         Player player = new Player();                                              //Skapar spelare och väggar
         int lives = 3;
+        int bossHealth = 20;
 
         List<Shot> shotsFired = new ArrayList<>();                                  //För lagring av shots
 
@@ -48,7 +49,7 @@ public class Main {
                 Thread.sleep(5);
                 keyStroke = terminal.pollInput();
                 counter++;
-                if (counter % 300 == 0 && speed > 3) {                               //För att få spelet att gå snabbare
+                if (counter % 500 == 0 && speed > 5) {                               //För att få spelet att gå snabbare
                         speed--;
                 }
 
@@ -72,6 +73,10 @@ public class Main {
                         for (Obstacle o : obstacleslvl3) {
                             printComets(terminal, o);
                         }
+                    }
+                    if (level == 4) {
+                        printBoss(terminal, boss);
+                        printBossHealth(terminal, bossHealth);
                     }
 
 
@@ -113,6 +118,13 @@ public class Main {
         } while (true);                                                 //Gameloop slutar här
     }
 
+    private static void printBoss(Terminal terminal, Obstacle boss) throws IOException {
+        for (Position p : boss.obstacleList){
+            terminal.setCursorPosition(p.getX(), p.getY());
+            terminal.putCharacter('X');
+        }
+    }
+
     private static void levelTwo() {
         obstacles.clear();
         obstacles = createWalls();
@@ -121,11 +133,49 @@ public class Main {
     }
     //TODO
     private static void levelBoss() {
+        speed = 20;
+    }
+
+    private static Obstacle createBoss() {
+        List<Position> bossParts = new ArrayList<>();
+        int x = 72;
+        int y = 8;
+        for (int i = 0; i < 7; i++){
+            bossParts.add(new Position(x, y));
+            x++;
+        }
+        bossParts.add(new Position(75, 9));
+        bossParts.add(new Position(75, 10));
+        x = 74;
+        y = 11;
+        for (int i = 0; i < 3; i++){
+            bossParts.add(new Position(x, y));
+            x++;
+        }
+        x=73;
+        y=12;
+        for (int i = 0; i < 5; i++){
+            bossParts.add(new Position(x, y));
+            x++;
+        }
+        x = 74;
+        y = 13;
+        for (int i = 0; i < 3; i++){
+            bossParts.add(new Position(x, y));
+            x++;
+        }
+        bossParts.add(new Position(75, 14));
+        bossParts.add(new Position(75, 15));
+        x = 72;
+        y = 16;
+        for (int i = 0; i < 7; i++){
+            bossParts.add(new Position(x, y));
+            x++;
+        }
+        return new Obstacle(bossParts);
     }
 
     private static void levelThree() {
-        /*List<Obstacle> temp = createComets();
-        obstacles.addAll(temp);*/
         speed = 20;
     }
 
@@ -188,20 +238,20 @@ public class Main {
                 if (points >= 3){
                     if (level == 1){
                         levelTwo();
+                        level = 2;
                     }
-                    level = 2;
                 }
                 if (points >= 6){
                     if (level == 2){
                         levelThree();
+                        level = 3;
                     }
-                    level = 3;
                 }
-                if (points >= 100){
+                if (points >= 10){
                     if (level == 3){
                         levelBoss();
+                        level = 4;
                     }
-                    level = 4;
                 }
                 o.setX(r.nextInt(20)+60);
                 o.setY(r.nextInt(24));
@@ -288,6 +338,20 @@ public class Main {
         terminal.setCursorPosition(0, 1);
         for (int i = 0; i < pts.length(); i++) {
             terminal.putCharacter(pts.charAt(i));
+        }
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+
+    }
+    private static void printBossHealth(Terminal terminal, int bossHealth) throws IOException {
+        terminal.setForegroundColor(TextColor.ANSI.RED);
+        String health = "BOSS HEALTH: ";
+        terminal.setCursorPosition(56, 0);
+        for (int i = 0; i < health.length(); i++) {
+            terminal.putCharacter(health.charAt(i));
+        }
+        terminal.setCursorPosition(56, 1);
+        for (int i = 0; i < bossHealth; i++) {
+            terminal.putCharacter('\u29f3');
         }
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
 
