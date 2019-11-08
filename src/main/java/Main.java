@@ -308,9 +308,13 @@ public class Main {
     }
 
     private static int eatStars(Terminal terminal, Player player, int points, List<Position> stars) throws IOException {
+
         for (Position o : stars) {                                                                          //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
             if (o.getX() == player.getX() && o.getY() == player.getY()) {                                   //Bestämmer också level
                 points++;
+                String star = "Star.wav";
+                Sound soundPlayer3 = new Sound();
+                soundPlayer3.playSound(star);
                 if (points >= 1){
                     if (level == 1){
                         levelTwo();
