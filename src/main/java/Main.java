@@ -17,6 +17,7 @@ public class Main {
     static int points = 0;
     static int level = 1;
     static List<Obstacle> obstacles = createComets();                                  //Skapar kometer
+    static List<Obstacle> obstacleslvl3 = createComets();                               //Dubbel lista på lvl 3
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -63,12 +64,22 @@ public class Main {
                             printComets(terminal, o);                                               //Printar kometer
                         } else if (level == 2) {
                             printWall(terminal, o);
+                        } else if (level == 3) {
+                            printWall(terminal, o);
+                        }
+                    }
+                    if (level == 3){
+                        for (Obstacle o : obstacleslvl3) {
+                            printComets(terminal, o);
                         }
                     }
 
 
-
                     lives = collisionCheck(terminal, player, lives, obstacles);
+                    if (level == 3) {
+                        lives = collisionCheck(terminal, player, lives, obstacleslvl3);
+                    }
+
                     points = eatStars(terminal, player, points, stars);
 
                     printShots(terminal, shotsFired);
@@ -76,6 +87,10 @@ public class Main {
                     printPoints(terminal, points);
                     printStars(terminal, stars);
                     shotCollisionCheck(obstacles, shotsFired);
+                    if (level == 3) {
+                        shotCollisionCheck(obstacleslvl3, shotsFired);
+                    }
+
 
                     terminal.flush();
                 }
@@ -101,6 +116,7 @@ public class Main {
     private static void levelTwo() {
         obstacles.clear();
         obstacles = createWalls();
+        speed = 20;
         //TODO Level 2 Message
     }
     //TODO
@@ -108,6 +124,9 @@ public class Main {
     }
 
     private static void levelThree() {
+        /*List<Obstacle> temp = createComets();
+        obstacles.addAll(temp);*/
+        speed = 20;
     }
 
     private static void shotCollisionCheck(List<Obstacle> obstacles, List<Shot> shots) {
@@ -166,17 +185,17 @@ public class Main {
         for (Position o : stars) {                                                                          //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
             if (o.getX() == player.getX() && o.getY() == player.getY()) {                                   //Bestämmer också level
                 points++;
-                if (points >= 20){
-                    level = 2;
+                if (points >= 3){
                     if (level == 1){
                         levelTwo();
                     }
+                    level = 2;
                 }
-                if (points >= 50){
-                    level = 3;
+                if (points >= 6){
                     if (level == 2){
                         levelThree();
                     }
+                    level = 3;
                 }
                 if (points >= 100){
                     if (level == 3){
