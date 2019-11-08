@@ -11,6 +11,7 @@ import java.util.Random;
 
 public class Main {
 
+
     static Random r = new Random();
     static int speed = 20;
     static int starBlink = 0;
@@ -23,6 +24,15 @@ public class Main {
     static List<Shot> bossShots = new ArrayList<>();
 
     public static void main(String[] args) throws IOException, InterruptedException {
+         String intro = "Bakgrund.wav";
+         Sound soundPlayer = new Sound();
+        soundPlayer.playSound(intro);
+
+         String shoot = "Shoot.wav";
+
+
+
+
 
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();      //Skapar terminalfönster
         Terminal terminal = terminalFactory.createTerminal();
@@ -292,9 +302,11 @@ public class Main {
 
 
     private static void printShots(Terminal terminal, List<Shot> shotsFired) throws IOException {           //Printar shots, åker i motsatt riktning som obstacles med samma hastighet
+
         terminal.setForegroundColor(TextColor.ANSI.CYAN);
         for (int i = 0; i < shotsFired.size(); i++) {
-            if (shotsFired.get(i).getX() < 80) {                                                                 //Printar bara shots på spelplanen, annars tas de bort ur spelet
+            if (shotsFired.get(i).getX() < 80) {
+                                                                           //Printar bara shots på spelplanen, annars tas de bort ur spelet
                 terminal.setCursorPosition(shotsFired.get(i).getX(), shotsFired.get(i).getY());
                 terminal.putCharacter('\u2b50');
                 shotsFired.get(i).setX(shotsFired.get(i).getX()+1);
@@ -336,6 +348,10 @@ public class Main {
                 if (points > 0){
                     shots.add(new Shot(11, player.getY()));
                     points--;
+
+                    String shoot = "Shoot.wav";
+                    Sound soundPlayer2 = new Sound();
+                    soundPlayer2.playSound(shoot);
                 }
         }
     }
@@ -344,6 +360,9 @@ public class Main {
         for (Position o : stars) {                                                                          //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
             if (o.getX() == player.getX() && o.getY() == player.getY()) {                                   //Bestämmer också level
                 points++;
+                String star = "star.wav";
+                Sound soundPlayer3 = new Sound();
+                soundPlayer3.playSound(star);
                 if (points >= 10){
                     if (level == 1){
                         levelTwo(terminal);
