@@ -363,19 +363,19 @@ public class Main {
                 String star = "star.wav";
                 Sound soundPlayer3 = new Sound();
                 soundPlayer3.playSound(star);
-                if (points >= 10){
+                if (points >= 6){
                     if (level == 1){
                         levelTwo(terminal);
                         level = 2;
                     }
                 }
-                if (points >= 20){
+                if (points >= 12){
                     if (level == 2){
                         levelThree(terminal);
                         level = 3;
                     }
                 }
-                if (points >= 30){
+                if (points >= 20){
                     if (level == 3){
                         levelBoss(terminal);
                         level = 4;
@@ -545,7 +545,7 @@ public class Main {
             terminal.setForegroundColor(TextColor.ANSI.YELLOW);
             if (p.getX() >= 0) {
                 terminal.setCursorPosition(p.getX(), p.getY());
-                terminal.putCharacter('X');
+                terminal.putCharacter('\u2588');
                 p.setX(p.getX() - 1);
             } else {
                 o.obstacleList = buildWall(79 + r.nextInt(16));
