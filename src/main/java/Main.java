@@ -15,6 +15,9 @@ public class Main {
     static int speed = 20;
     static int starBlink = 0;
     static int points = 0;
+    static int level = 1;
+    static List<Obstacle> obstacles = createComets();                                  //Skapar kometer
+
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -25,7 +28,6 @@ public class Main {
         Player player = new Player();                                              //Skapar spelare och väggar
         int lives = 3;
 
-        List<Obstacle> obstacles = createComets();                                  //Skapar kometer
         List<Shot> shotsFired = new ArrayList<>();                                  //För lagring av shots
 
         List<Position> stars = new ArrayList<>();                                   //Skapar och placerar de första stjärnorna
@@ -34,6 +36,8 @@ public class Main {
         }
 
         int counter = 0;                                                            //Counter bestämmer hur ofta väggar flyttar sig, i princip dess hastighet. Ökar varje 5ms loop.
+
+
         do {                                                                        //Gameloopen
 
             printPlayer(terminal, player);
@@ -55,8 +59,11 @@ public class Main {
 
                     //TODO Beroende på level
                     for (Obstacle o : obstacles) {                                              //Printar väggar
-                        //  printWall(terminal, o);
-                        printComets(terminal, o);                                               //Printar kometer
+                        if (level == 1) {
+                            printComets(terminal, o);                                               //Printar kometer
+                        } else if (level == 2) {
+                            printWall(terminal, o);
+                        }
                     }
 
 
@@ -68,7 +75,7 @@ public class Main {
                     printLives(terminal, lives);
                     printPoints(terminal, points);
                     printStars(terminal, stars);
-                    shotCollisionCheck(terminal, obstacles, shotsFired);
+                    shotCollisionCheck(obstacles, shotsFired);
 
                     terminal.flush();
                 }
@@ -91,7 +98,19 @@ public class Main {
         } while (true);                                                 //Gameloop slutar här
     }
 
-    private static void shotCollisionCheck(Terminal terminal, List<Obstacle> obstacles, List<Shot> shots) {
+    private static void levelTwo() {
+        obstacles.clear();
+        obstacles = createWalls();
+        //TODO Level 2 Message
+    }
+    //TODO
+    private static void levelBoss() {
+    }
+
+    private static void levelThree() {
+    }
+
+    private static void shotCollisionCheck(List<Obstacle> obstacles, List<Shot> shots) {
         for (Obstacle ob : obstacles) {                                                                     //Kollisionscheck mellan shots och obstacles
             for (int i = 0; i < shots.size(); i++) {
                 for (int p = 0; p < ob.obstacleList.size(); p++) {
@@ -144,9 +163,27 @@ public class Main {
     }
 
     private static int eatStars(Terminal terminal, Player player, int points, List<Position> stars) throws IOException {
-        for (Position o : stars) {                                                                        //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
-            if (o.getX() == player.getX() && o.getY() == player.getY()) {
+        for (Position o : stars) {                                                                          //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
+            if (o.getX() == player.getX() && o.getY() == player.getY()) {                                   //Bestämmer också level
                 points++;
+                if (points >= 20){
+                    level = 2;
+                    if (level == 1){
+                        levelTwo();
+                    }
+                }
+                if (points >= 50){
+                    level = 3;
+                    if (level == 2){
+                        levelThree();
+                    }
+                }
+                if (points >= 100){
+                    if (level == 3){
+                        levelBoss();
+                    }
+                    level = 4;
+                }
                 o.setX(r.nextInt(20)+60);
                 o.setY(r.nextInt(24));
                 terminal.setCursorPosition(stars.get(stars.size() - 1).getX(), stars.get(stars.size() - 1).getY());
@@ -185,14 +222,24 @@ public class Main {
     }
 
     private static List<Obstacle> createComets() {
-        List<Obstacle> obstacles = new ArrayList<>();
+        List<Obstacle> comets = new ArrayList<>();
 
-        obstacles.add(new Obstacle(buildComet(79)));
-        obstacles.add(new Obstacle(buildComet(95)));
-        obstacles.add(new Obstacle(buildComet(111)));
-        obstacles.add(new Obstacle(buildComet(127)));
-        obstacles.add(new Obstacle(buildComet(143)));
-        return obstacles;
+        comets.add(new Obstacle(buildComet(79)));
+        comets.add(new Obstacle(buildComet(95)));
+        comets.add(new Obstacle(buildComet(111)));
+        comets.add(new Obstacle(buildComet(127)));
+        comets.add(new Obstacle(buildComet(143)));
+        return comets;
+    }
+    private static List<Obstacle> createWalls() {
+        List<Obstacle> walls = new ArrayList<>();
+
+        walls.add(new Obstacle(buildWall(79)));
+        walls.add(new Obstacle(buildWall(95)));
+        walls.add(new Obstacle(buildWall(111)));
+        walls.add(new Obstacle(buildWall(127)));
+        walls.add(new Obstacle(buildWall(143)));
+        return walls;
     }
 
     private static void printStars(Terminal terminal, List<Position> stars) throws IOException {
@@ -217,11 +264,14 @@ public class Main {
     }
 
     private static void printPoints(Terminal terminal, int points) throws IOException {
-        String pts = "Points: " + points;
+        terminal.setForegroundColor(TextColor.ANSI.CYAN);
+        String pts = "STARS: " + points;
         terminal.setCursorPosition(0, 1);
         for (int i = 0; i < pts.length(); i++) {
             terminal.putCharacter(pts.charAt(i));
         }
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+
     }
 
     private static void printDeath(Terminal terminal) throws IOException {
