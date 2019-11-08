@@ -19,6 +19,7 @@ public class Main {
     static List<Obstacle> obstacles = createComets();                                  //Skapar kometer
     static List<Obstacle> obstacleslvl3 = createComets();                               //Dubbel lista på lvl 3
     static Obstacle boss = createBoss();
+    static int bossHealth = 20;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -28,7 +29,7 @@ public class Main {
 
         Player player = new Player();                                              //Skapar spelare och väggar
         int lives = 3;
-        int bossHealth = 20;
+
 
         List<Shot> shotsFired = new ArrayList<>();                                  //För lagring av shots
 
@@ -75,8 +76,15 @@ public class Main {
                         }
                     }
                     if (level == 4) {
+                        if (counter%25==0) {
+                            moveBoss(boss);
+                        }
                         printBoss(terminal, boss);
                         printBossHealth(terminal, bossHealth);
+                        bossCollisionCheck(boss, shotsFired);
+                        if (bossHealth < 1){
+                            endGame(terminal);
+                        }
                     }
 
 
@@ -118,6 +126,41 @@ public class Main {
         } while (true);                                                 //Gameloop slutar här
     }
 
+    private static void endGame(Terminal terminal) throws IOException {
+        terminal.clearScreen();
+        terminal.setCursorPosition(35, 12);
+        terminal.setForegroundColor(TextColor.ANSI.GREEN);
+        String death = "YOU WIN!";
+        for (int i = 0; i < death.length(); i++) {
+            terminal.putCharacter(death.charAt(i));
+        }
+        terminal.flush();
+    }
+
+    private static void moveBoss(Obstacle boss) {
+        boolean tooHigh = false;
+        boolean tooLow = false;
+        for (Position p : boss.obstacleList){
+            if (p.getY() == 0){
+                tooHigh = true;
+            }
+            if (p.getY() == 23){
+                tooLow = true;
+            }
+        }
+        int rand = r.nextInt(2);
+            if (rand == 1 && tooLow == false) {
+                for (Position p : boss.obstacleList) {
+                    p.setY(p.getY() + 1);
+                }
+            } else if (rand == 0 && tooHigh == false){
+                for (Position p : boss.obstacleList) {
+                    p.setY(p.getY() - 1);
+                }
+            }
+        }
+
+
     private static void printBoss(Terminal terminal, Obstacle boss) throws IOException {
         for (Position p : boss.obstacleList){
             terminal.setCursorPosition(p.getX(), p.getY());
@@ -134,6 +177,8 @@ public class Main {
     //TODO
     private static void levelBoss() {
         speed = 20;
+        obstacleslvl3.clear();
+        obstacles.clear();
     }
 
     private static Obstacle createBoss() {
@@ -194,6 +239,21 @@ public class Main {
             }
         }
     }
+    private static void bossCollisionCheck(Obstacle boss, List<Shot> shots) {
+                                                                             //Kollisionscheck mellan shots och obstacles
+            for (int i = 0; i < shots.size(); i++) {
+                for (int p = 0; p < boss.obstacleList.size(); p++) {
+                    try {
+                        if (boss.obstacleList.get(p).getX() <= shots.get(i).getX() && boss.obstacleList.get(p).getY() == shots.get(i).getY()) {
+                            shots.remove(i);
+                            bossHealth--;
+                        }
+                    }catch (IndexOutOfBoundsException e) {
+                    }
+                }
+            }
+        }
+
 
     private static void printShots(Terminal terminal, List<Shot> shotsFired) throws IOException {           //Printar shots, åker i motsatt riktning som obstacles med samma hastighet
         terminal.setForegroundColor(TextColor.ANSI.CYAN);
@@ -235,19 +295,19 @@ public class Main {
         for (Position o : stars) {                                                                          //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
             if (o.getX() == player.getX() && o.getY() == player.getY()) {                                   //Bestämmer också level
                 points++;
-                if (points >= 3){
+                if (points >= 1){
                     if (level == 1){
                         levelTwo();
                         level = 2;
                     }
                 }
-                if (points >= 6){
+                if (points >= 2){
                     if (level == 2){
                         levelThree();
                         level = 3;
                     }
                 }
-                if (points >= 10){
+                if (points >= 4){
                     if (level == 3){
                         levelBoss();
                         level = 4;
