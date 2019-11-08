@@ -13,6 +13,8 @@ public class Main {
 
     static Random r = new Random();
     static int speed = 20;
+    static int starBlink = 0;
+    static int points = 0;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -22,9 +24,9 @@ public class Main {
 
         Player player = new Player();                                              //Skapar spelare och väggar
         int lives = 3;
-        int points = 0;
 
         List<Obstacle> obstacles = createComets();                                  //Skapar kometer
+        List<Shot> shotsFired = new ArrayList<>();                                  //För lagring av shots
 
         List<Position> stars = new ArrayList<>();                                   //Skapar och placerar de första stjärnorna
         for (int i = 0; i < 5; i++) {
@@ -62,9 +64,11 @@ public class Main {
                     lives = collisionCheck(terminal, player, lives, obstacles);
                     points = eatStars(terminal, player, points, stars);
 
+                    printShots(terminal, shotsFired);
                     printLives(terminal, lives);
                     printPoints(terminal, points);
                     printStars(terminal, stars);
+                    shotCollisionCheck(terminal, obstacles, shotsFired);
 
                     terminal.flush();
                 }
@@ -82,12 +86,42 @@ public class Main {
             terminal.putCharacter(' ');
 
             KeyType type = keyStroke.getKeyType();
-            playerMovement(player, type);
+            playerMovement(player, type, shotsFired);
             terminal.flush();
         } while (true);                                                 //Gameloop slutar här
     }
 
-    private static void playerMovement(Player player, KeyType type) {
+    private static void shotCollisionCheck(Terminal terminal, List<Obstacle> obstacles, List<Shot> shots) {
+        for (Obstacle ob : obstacles) {                                                                     //Kollisionscheck mellan shots och obstacles
+            for (int i = 0; i < shots.size(); i++) {
+                for (int p = 0; p < ob.obstacleList.size(); p++) {
+                    try {
+                        if (ob.obstacleList.get(p).getX() <= shots.get(i).getX() && ob.obstacleList.get(p).getY() == shots.get(i).getY()) {
+                            shots.remove(i);
+                            ob.obstacleList.remove(p);
+                        }
+                    }catch (IndexOutOfBoundsException e) {
+                    }
+                }
+            }
+        }
+    }
+
+    private static void printShots(Terminal terminal, List<Shot> shotsFired) throws IOException {           //Printar shots, åker i motsatt riktning som obstacles med samma hastighet
+        terminal.setForegroundColor(TextColor.ANSI.CYAN);
+        for (int i = 0; i < shotsFired.size(); i++) {
+            if (shotsFired.get(i).getX() < 80) {                                                                 //Printar bara shots på spelplanen, annars tas de bort ur spelet
+                terminal.setCursorPosition(shotsFired.get(i).getX(), shotsFired.get(i).getY());
+                terminal.putCharacter('\u2b50');
+                shotsFired.get(i).setX(shotsFired.get(i).getX()+1);
+            } else {
+                shotsFired.remove(shotsFired.get(i));
+            }
+        }
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+    }
+
+    private static void playerMovement(Player player, KeyType type, List<Shot> shots) {
         switch (type) {                                     //Spelares förflyttning
             case ArrowDown:
                 if (player.getY() == 23) {
@@ -101,11 +135,16 @@ public class Main {
                     player.setY(player.getY() - 1);
                 }
                 break;
+            case Tab:
+                if (points > 0){
+                    shots.add(new Shot(11, player.getY()));
+                    points--;
+                }
         }
     }
 
     private static int eatStars(Terminal terminal, Player player, int points, List<Position> stars) throws IOException {
-        for (Position o : stars) {                                                                        //Lägger till ny stjärna när spelare har tagit en
+        for (Position o : stars) {                                                                        //Lägger till ny stjärna när spelare har tagit en samt ökar poäng
             if (o.getX() == player.getX() && o.getY() == player.getY()) {
                 points++;
                 o.setX(r.nextInt(20)+60);
@@ -121,10 +160,9 @@ public class Main {
     }
 
     private static int collisionCheck(Terminal terminal, Player player, int lives, List<Obstacle> obstacles) throws IOException {
-        for (Obstacle ob : obstacles) {                                             //Kollisionscheck med väggarna
+        for (Obstacle ob : obstacles) {                                             //Kollisionscheck med obstacles
             for (Position p : ob.obstacleList) {
                 if (p.getX() == player.getX() && p.getY() == player.getY()) {
-                    System.out.println("DEATH");    //TODO nåt bättre än detta
                     lives--;
                     terminal.setForegroundColor(TextColor.ANSI.WHITE);          //Skriver ut "OH NO!" där man krockar med vägg
                     terminal.setCursorPosition(player.getX(), player.getY());
@@ -139,9 +177,10 @@ public class Main {
     }
 
     private static void printPlayer(Terminal terminal, Player player) throws IOException {
-        terminal.setForegroundColor(TextColor.ANSI.WHITE);
+        terminal.setForegroundColor(TextColor.ANSI.MAGENTA);
         terminal.setCursorPosition(player.getX(), player.getY());               //Flytta spelare
         terminal.putCharacter(player.getPlayerChar());
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
         terminal.flush();
     }
 
@@ -158,20 +197,23 @@ public class Main {
 
     private static void printStars(Terminal terminal, List<Position> stars) throws IOException {
         for (Position o : stars) {
+            starBlink++;
             if (o.getX() >= 0) {
                 o.setX(o.getX() - 1);
                 terminal.setCursorPosition(o.getX(), o.getY());
-                terminal.setForegroundColor(TextColor.ANSI.WHITE);
+                if (starBlink % 2 == 0) {
+                    terminal.setForegroundColor(TextColor.ANSI.WHITE);
+                } else {
+                    terminal.setForegroundColor(TextColor.ANSI.CYAN);
+                }
                 terminal.putCharacter('\u2b50');            //25CF
-                /*terminal.setForegroundColor(TextColor.ANSI.WHITE);        //Ev TODO: Blinkande stjärnor
-                terminal.putCharacter('\u2b50');
-                terminal.flush();*/
             } else {
                 o.setX(r.nextInt(20)+60);
                 o.setY(r.nextInt(24));
             }
         }
         terminal.flush();
+        terminal.setForegroundColor(TextColor.ANSI.WHITE);
     }
 
     private static void printPoints(Terminal terminal, int points) throws IOException {
