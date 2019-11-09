@@ -507,10 +507,14 @@ public class Main {
         terminal.setForegroundColor(TextColor.ANSI.RED);
         terminal.bell();
         String death = "YOU DIED!";
+        String explosion = "Explosion.wav";
+        Sound soundPlayer = new Sound();
+        soundPlayer.playSound(explosion);
         for (int i = 0; i < death.length(); i++) {
             terminal.putCharacter(death.charAt(i));
         }
         terminal.flush();
+
     }
 
     private static void printLives(Terminal terminal, int lives) throws IOException {
