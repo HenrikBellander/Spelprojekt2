@@ -22,6 +22,7 @@ public class Main {
     static Obstacle boss = createBoss();
     static int bossHealth = 20;
     static List<Shot> bossShots = new ArrayList<>();
+    static List<Shot> aimedShots = new ArrayList<>();
 
     public static void main(String[] args) throws IOException, InterruptedException {
          String intro = "Bakgrund.wav";
@@ -61,7 +62,7 @@ public class Main {
                 Thread.sleep(5);
                 keyStroke = terminal.pollInput();
                 counter++;
-                if (counter % 500 == 0 && speed > 5) {                               //För att få spelet att gå snabbare
+                if (counter % 400 == 0 && speed > 4) {                               //För att få spelet att gå snabbare
                         speed--;
                 }
 
@@ -90,6 +91,9 @@ public class Main {
                         if (counter%25==0) {
                             moveBoss(boss);
                         }
+                        if (counter%500==0){
+                            aimedShots.add(new Shot(boss.obstacleList.get(12).getX()-1, boss.obstacleList.get(12).getY()));
+                        }
                         if (counter%40==0){
                             bossShots.add(new Shot(boss.obstacleList.get(0).getX()-1, boss.obstacleList.get(0).getY()));
                         } else if (counter%20==0){
@@ -98,11 +102,14 @@ public class Main {
                         printBoss(terminal, boss);
                         printBossHealth(terminal, bossHealth);
                         printBossShots(terminal, bossShots);
+                        printAimedShots(terminal, aimedShots, player);
                         bossCollisionCheck(boss, shotsFired);
                         if (bossHealth < 1){
                             endGame(terminal);
                         }
                         lives = hitByBossCheck(terminal, player, lives, bossShots);
+                        lives = hitByBossCheck(terminal, player, lives, aimedShots);
+
                     }
 
 
@@ -284,6 +291,19 @@ public class Main {
                 }
             }
         }
+        if (level == 4){
+            try {
+            for (Shot s : aimedShots) {                                                                     //Kollisionscheck mellan shots och obstacles
+                for (int i = 0; i < shots.size(); i++) {
+                            if (s.getX() <= shots.get(i).getX() && s.getY() == shots.get(i).getY()) {
+                                shots.remove(i);
+                                aimedShots.remove(s);
+                            }
+                        }
+                    }
+            } catch (Exception e) {
+            }
+        }
     }
     private static void bossCollisionCheck(Obstacle boss, List<Shot> shots) {
                                                                              //Kollisionscheck mellan shots och obstacles
@@ -306,7 +326,7 @@ public class Main {
         terminal.setForegroundColor(TextColor.ANSI.CYAN);
         for (int i = 0; i < shotsFired.size(); i++) {
             if (shotsFired.get(i).getX() < 80) {
-                                                                           //Printar bara shots på spelplanen, annars tas de bort ur spelet
+                //Printar bara shots på spelplanen, annars tas de bort ur spelet
                 terminal.setCursorPosition(shotsFired.get(i).getX(), shotsFired.get(i).getY());
                 terminal.putCharacter('\u2b50');
                 shotsFired.get(i).setX(shotsFired.get(i).getX()+1);
@@ -316,6 +336,7 @@ public class Main {
         }
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
     }
+
     private static void printBossShots(Terminal terminal, List<Shot> bossShots) throws IOException {           //Printar shots, åker i motsatt riktning som obstacles med samma hastighet
         terminal.setForegroundColor(TextColor.ANSI.RED);
         for (int i = 0; i < bossShots.size(); i++) {
@@ -329,6 +350,27 @@ public class Main {
         }
         terminal.setForegroundColor(TextColor.ANSI.WHITE);
     }
+
+    private static void printAimedShots(Terminal terminal, List<Shot> aimedShots, Player player) throws IOException {           //Printar shots, åker i motsatt riktning som obstacles med samma hastighet
+        terminal.setForegroundColor(TextColor.ANSI.RED);
+        for (int i = 0; i < aimedShots.size(); i++) {
+            if (aimedShots.get(i).getX() > 0) {                                                                 //Printar bara shots på spelplanen, annars tas de bort ur spelet
+                terminal.setCursorPosition(aimedShots.get(i).getX(), aimedShots.get(i).getY());
+                terminal.putCharacter('\u25c0');
+                if (aimedShots.get(i).getY() > player.getY()) {
+                    aimedShots.get(i).setY(aimedShots.get(i).getY() - 1);
+                } else if (aimedShots.get(i).getY() < player.getY()) {
+                    aimedShots.get(i).setY(aimedShots.get(i).getY() + 1);
+                } else {
+                    aimedShots.get(i).setX(aimedShots.get(i).getX() - 1);
+                }
+            } else {
+                    aimedShots.remove(aimedShots.get(i));
+                }
+            }
+            terminal.setForegroundColor(TextColor.ANSI.WHITE);
+            terminal.flush();
+        }
 
     private static void playerMovement(Player player, KeyType type, List<Shot> shots) {
         switch (type) {                                     //Spelares förflyttning
@@ -363,19 +405,19 @@ public class Main {
                 String star = "star.wav";
                 Sound soundPlayer3 = new Sound();
                 soundPlayer3.playSound(star);
-                if (points >= 6){
+                if (points >= 1){
                     if (level == 1){
                         levelTwo(terminal);
                         level = 2;
                     }
                 }
-                if (points >= 12){
+                if (points >= 2){
                     if (level == 2){
                         levelThree(terminal);
                         level = 3;
                     }
                 }
-                if (points >= 20){
+                if (points >= 3){
                     if (level == 3){
                         levelBoss(terminal);
                         level = 4;
